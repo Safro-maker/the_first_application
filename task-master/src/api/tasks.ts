@@ -4,7 +4,7 @@ export type Task = {
     id: string;
     title: string;
     isCompleted: boolean;
-    createdAt: string; 
+    createdAt: number; 
 };
 export async function getTasks(): Promise<Task[]> {
     const response = await fetch(`${BASE_URL}/tasks`);
@@ -16,3 +16,22 @@ export async function getTasks(): Promise<Task[]> {
     const data = await response.json();
     return data;
 };
+
+export async function createTask(title: string): Promise<Task> {
+    const response = await fetch(`${BASE_URL}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json"},
+        body: JSON.stringify({
+            title: title,
+            isCompleted: false,
+            createdAt: Date.now()
+        }),
+    });
+    
+    if(!response.ok) {
+        throw new Error("Ошибка создания задачи");
+    }
+
+    const data = await response.json();
+    return data;
+}
