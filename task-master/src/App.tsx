@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { getTasks } from "./api/tasks";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createTask, getTasks } from "./api/tasks";
 
 function App() {
   const { data, isLoading, isError } = useQuery({
@@ -7,20 +8,50 @@ function App() {
     queryFn: getTasks,
   });
 
+  const queryClient = useQueryClient();
+
+  const [title, setTitle] = useState("");
+
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: async () => {
+      setTitle("");
+      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
   if (isLoading) {
     return <div>Загрузка...</div>;
   }
 
   if (isError) {
-    return <div>Ошибка загрузки задач</div>;
+    return <div>Ошибка сервера</div>;
   }
 
   return (
-    <ul>
-      {data?.map(task => (
-        <li key={task.id}>{task.title}</li>
-      ))}
-    </ul>
+    <div>
+      <div>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Новая задача"
+        />
+        <button
+          onClick={() => createTaskMutation.mutate(title)}
+          disabled={title.trim() === "" || createTaskMutation.isPending}
+        >
+          Добавить
+        </button>
+      </div>
+
+      {createTaskMutation.isError && <div>Ошибка сервера</div>}
+
+      <ul>
+        {data?.map((task) => (
+          <li key={task.id}>{task.title}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
