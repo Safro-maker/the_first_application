@@ -35,3 +35,12 @@ export async function createTask(title: string): Promise<Task> {
     const data = await response.json();
     return data;
 }
+export async function deleteTask(id: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/tasks/${id}`, {
+        method: "DELETE",
+    });
+
+    if (!response.ok) {
+        throw new Error("Ошибка удаления задачи")
+    }
+}
