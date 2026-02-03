@@ -48,7 +48,17 @@ function App() {
 
       <ul>
         {data?.map((task) => (
-          <li key={task.id}>{task.title}</li>
+          <li key={task.id}>
+            <input 
+              type="checkbox"
+              checked={task.isCompleted}
+              readOnly
+            />
+
+            <span>{task.title}</span>
+
+            <button>Удалить</button>
+          </li>
         ))}
       </ul>
     </div>
