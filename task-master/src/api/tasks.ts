@@ -34,7 +34,8 @@ export async function createTask(title: string): Promise<Task> {
 
     const data = await response.json();
     return data;
-}
+};
+
 export async function deleteTask(id: string): Promise<void> {
     const response = await fetch(`${BASE_URL}/tasks/${id}`, {
         method: "DELETE",
@@ -43,4 +44,16 @@ export async function deleteTask(id: string): Promise<void> {
     if (!response.ok) {
         throw new Error("Ошибка удаления задачи")
     }
-}
+};
+
+export async function toggleTask(id: string, isCompleted: boolean): Promise<void> {
+    const response = await fetch(`${BASE_URL}/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json"},
+        body: JSON.stringify({ isCompleted }),
+    });
+
+    if (!response.ok) {
+        throw new Error("Ошибка обновления задачи");
+    }
+};

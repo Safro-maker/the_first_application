@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createTask, getTasks, deleteTask } from "./api/tasks";
+import { createTask, getTasks, deleteTask, toggleTask } from "./api/tasks";
 
 function App() {
   const { data, isLoading, isError } = useQuery({
@@ -22,6 +22,13 @@ function App() {
 
   const deleteTaskMutation = useMutation({
     mutationFn: deleteTask,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
+  const toggleTaskMutation = useMutation({
+    mutationFn: ({ id, isCompleted }: { id: string; isCompleted: boolean }) => toggleTask(id, isCompleted),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
@@ -53,6 +60,7 @@ function App() {
 
       {createTaskMutation.isError && <div>Ошибка сервера</div>}
       {deleteTaskMutation.isError && <div>Ошибка сервера</div>}
+      {toggleTaskMutation.isError && <div>Ошибка сервера</div>}
 
       <ul>
         {data?.map((task) => (
@@ -60,7 +68,13 @@ function App() {
             <input 
               type="checkbox"
               checked={task.isCompleted}
-              readOnly
+              onChange={() =>
+                toggleTaskMutation.mutate({
+                  id: task.id,
+                  isCompleted: !task.isCompleted,
+                })
+              }
+              disabled={toggleTaskMutation.isPending}
             />
 
             <span>{task.title}</span>
