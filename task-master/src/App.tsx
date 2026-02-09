@@ -1,6 +1,19 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTask, getTasks, deleteTask, toggleTask } from "./api/tasks";
+import { create } from "zustand";
+
+type Filter = "all" | "active" | "completed";
+
+type FilterStore = {
+  filter: Filter;
+  setFilter: (filter: Filter) => void;
+};
+
+const useFilterStore = create<FilterStore>((set) =>({
+  filter: "all",
+  setFilter: (filter: Filter) => set({ filter }),
+}));
 
 function App() {
   const { data, isLoading, isError } = useQuery({
@@ -11,6 +24,8 @@ function App() {
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState("");
+
+  const { filter, setFilter } = useFilterStore();
 
   const createTaskMutation = useMutation({
     mutationFn: createTask,
@@ -42,6 +57,12 @@ function App() {
     return <div>Ошибка сервера</div>;
   }
 
+  const filteredTasks = (data ?? []).filter((task) => {
+    if (filter === "active") return !task.isCompleted;
+    if (filter === "completed") return task.isCompleted;
+    return true; //all
+  });
+
   return (
     <div>
       <div>
@@ -62,8 +83,14 @@ function App() {
       {deleteTaskMutation.isError && <div>Ошибка сервера</div>}
       {toggleTaskMutation.isError && <div>Ошибка сервера</div>}
 
+      <div>
+        <button onClick = {() => setFilter("all")} disabled = {filter === "all"}>Все</button>
+        <button onClick = {() => setFilter("active")} disabled = {filter === "active"}>Активные</button>
+        <button onClick = {() => setFilter("completed")} disabled = {filter === "completed"}>Выполненные</button>
+      </div>
+
       <ul>
-        {data?.map((task) => (
+        {filteredTasks.map((task) => (
           <li key={task.id}>
             <input 
               type="checkbox"
